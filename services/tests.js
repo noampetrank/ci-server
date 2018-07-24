@@ -91,7 +91,10 @@ function runTestsCycle(branch) {
             await prepareTestFiles();
 
             await prepareMobileproduct(branch);
-            resolve(await testMobileproduct(branch));
+            let androidBuildOutput = await BuildAndroidMobileproduct();
+            let result = await testMobileproduct();
+            result.output = "Building Android:\n\n" + androidBuildOutput + "\n\nBuilding and Testing Linux:\n\n" + result.output;
+            resolve(result);
         } catch(err) {
             LogService.error("Running test cycle for branch '" + branch + "' failed: " + err.message);
             reject(err);
@@ -148,7 +151,32 @@ function buildBugatoneSpace() {
     });
 }
 
-function testMobileproduct(branch) {
+function BuildAndroidMobileproduct() {
+    return new Promise(async (resolve, reject) => {
+        try {
+            LogService.log("Building mobileproduct for Android...");
+            let result = await SystemService.exec("./make.py android", MOBILEPRODUCT_FOLDER, BUILD_TIMEOUT, BUGATONE_SPACE_FOLDER + "/lib/linux_x86");
+            LogService.log("Building mobileproduct for Android done. Return code: " + result.returnCode);
+            if (result.returnCode != 0) {
+                reject({
+                    message: "Error building mobileproduct for Android. Return code: " + result.returnCode,
+                    output: result.output
+                });
+            }
+            else {
+                resolve(result.output);
+            }
+        } catch(err) {
+            LogService.warn("Error building mobileproduct for Android: " + err.message);
+            reject({
+                output: err.output,
+                message: err.message
+            });
+        }
+    });
+}
+
+function testMobileproduct() {
     return new Promise(async (resolve, reject) => {
         try {
             LogService.log("Building and testing mobileproduct...");
