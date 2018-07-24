@@ -5,139 +5,76 @@ const LogService = require("./log");
 
 const GIT_TIMEOUT = 1000 * 20 // 20 seconds
 
-function pullRepo(folder, branch, pullTimeout) {
+function executeGitCommand(argsStr, folder, timeout) {
     return new Promise(async (resolve, reject) => {
-        pullTimeout = pullTimeout || GIT_TIMEOUT;
-
         try {
-            LogService.log("Pulling " + folder + " with timeout = " + pullTimeout + "ms...");
-            let pullResult = await SystemService.exec("git pull", folder, pullTimeout);
-            if (pullResult.returnCode != 0) {
+            LogService.log("Executing 'git " + argsStr +"' in folder " + folder + " with timeout = " + timeout + "ms...");
+            let result = await SystemService.exec("git " + argsStr, folder, timeout);
+            if (result.returnCode != 0) {
                 throw {
-                    message: "Error pulling " + folder + ": return value is " + pullResult.returnCode,
-                    output: pullResult.output
+                    message: "Error executing 'git " + argsStr +"' in folder " + folder + ": return value is " + result.returnCode,
+                    output: result.output
                 };
             }
             else {
-                LogService.log("Succesfully pulled " + folder);
+                LogService.log("Succesfully executed 'git " + argsStr + "'");
                 resolve();
             }
         } catch(err) {
-            LogService.log("Pulling " + folder + " failed: " + err.message + ". Trying to reset to origin");
+            reject(err);
+        }
+    });
+}
+
+function pullRepo(folder, branch, pullTimeout) {
+    return new Promise(async (resolve, reject) => {
+        pullTimeout = pullTimeout || GIT_TIMEOUT;
+        try {
+            await executeGitCommand("pull", folder, pullTimeout);
+            resolve();
+        } catch(pullError) {
+            LogService.log("Pulling " + folder + " failed: " + pullError.message + ". Trying to reset to origin");
             try {
                 await resetRepoToOrigin(folder, branch);
                 resolve();
-            } catch (err) {
-                reject(err);
+            } catch(resetError) {
+                reject({
+                    message: pullError.message + ". " + resetError.message,
+                    output: pullError.output + "\n" + resetError.output
+                });
             }
         }
     });
 }
 
 function fetchRepo(folder) {
-    return new Promise(async (resolve, reject) => {
-        try {
-            LogService.log("Fetching " + folder + " with timeout = " + GIT_TIMEOUT + "ms...");
-            let fetchResult = await SystemService.exec("git fetch origin", folder, GIT_TIMEOUT);
-            if (fetchResult.returnCode != 0) {
-                throw {
-                    message: "Error fetching " + folder + ": return value is " + fetchResult.returnCode,
-                    output: fetchResult.output
-                };
-            }
-            else {
-                LogService.log("Succesfully fetched " + folder);
-                resolve();
-            }
-        } catch(err) {
-            LogService.error("Fetching " + folder + " failed: " + err.message);
-            reject(err);
-        }
-    });
+    return executeGitCommand("fetch origin", folder, GIT_TIMEOUT);
 }
 
 function resetRepo(folder) {
     return new Promise(async (resolve, reject) => {
         try {
-            LogService.log("Resetting " + folder + "...");
-            let resetResult = await SystemService.exec("git reset --hard", folder, GIT_TIMEOUT);
-            if (resetResult.returnCode != 0) {
-                throw {
-                    message: "Error resetting " + folder + ": return value is " + resetResult.returnCode,
-                    output: resetResult.output
-                };
-            }
-            else {
-                LogService.log("Succesfully reset " + folder);
-            }
+            await executeGitCommand("reset --hard", folder, GIT_TIMEOUT);
         } catch(err) {
-            LogService.error("Resetting " + folder + " failed: " + err.message);
             reject(err);
             return;
         }
 
         try {
-            LogService.log("Cleaning " + folder + "...");
-            let cleanResult = await SystemService.exec("git clean -f", folder, GIT_TIMEOUT);
-            if (cleanResult.returnCode != 0) {
-                throw {
-                    message: "Error cleaning " + folder + ": return value is " + cleanResult.returnCode,
-                    output: cleanResult.output
-                };
-            }
-            else {
-                LogService.log("Succesfully cleaned " + folder);
-                resolve();
-            }
+            await executeGitCommand("clean -f", folder, GIT_TIMEOUT);
+            resolve();
         } catch(err) {
-            LogService.error("Cleaning " + folder + " failed: " + err.message);
             reject(err);
         }
     });
 }
 
 function resetRepoToOrigin(folder, branch) {
-    return new Promise(async (resolve, reject) => {
-        try {
-            LogService.log("Resetting " + folder + " to origin/" + branch + "...");
-            let resetResult = await SystemService.exec("git reset --hard origin/" + branch, folder, GIT_TIMEOUT);
-            if (resetResult.returnCode != 0) {
-                throw {
-                    message: "Error resetting " + folder + " to origin: return value is " + resetResult.returnCode,
-                    output: resetResult.output
-                };
-            }
-            else {
-                LogService.log("Succesfully reset to origin " + folder);
-                resolve();
-            }
-        } catch(err) {
-            LogService.error("Resetting " + folder + " to origin failed: " + err.message);
-            reject(err);
-        }
-    });
+    return executeGitCommand("reset --hard origin/" + branch, folder, GIT_TIMEOUT);
 }
 
 function checkoutRepo(folder, branch) {
-    return new Promise(async (resolve, reject) => {
-        try {
-            LogService.log("Checking out " + folder + "...");
-            let checkoutResult = await SystemService.exec("git checkout " + branch, folder, GIT_TIMEOUT);
-            if (checkoutResult.returnCode != 0) {
-                throw {
-                    message: "Error checking out " + folder + ": return value is " + checkoutResult.returnCode,
-                    output: checkoutResult.output
-                };
-            }
-            else {
-                LogService.log("Succesfully checkout " + branch + " in " + folder);
-                resolve();
-            }
-        } catch(err) {
-            LogService.error("Checking out " + folder + " failed: " + err.message);
-            reject(err);
-        }
-    });
+    return executeGitCommand("checkout " + branch, folder, GIT_TIMEOUT);
 }
 
 module.exports = {
