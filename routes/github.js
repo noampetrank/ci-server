@@ -112,7 +112,7 @@ async function notifyTestError(commitId, errorMessage, testOutput) {
         if (testOutput) {
             await saveLog(commitId, testOutput);
         }
-        await GithubService.setCommitStatus(GITHUB_REPO_OWNER, GITHUB_REPO_NAME, commitId, "error", testOutput ? ("See full log at: " + getLogAddress(commitId)) : errorMessage.slice[-MAX_GITHUB_COMMIT_STATUS_LENGTH]);
+        await GithubService.setCommitStatus(GITHUB_REPO_OWNER, GITHUB_REPO_NAME, commitId, "error", testOutput ? ("See full log at: " + getLogAddress(commitId)) : errorMessage.slice(-MAX_GITHUB_COMMIT_STATUS_LENGTH));
     } catch(err) {
         LogService.error("Error notifying test error (commit " + commitId + ") to Github: " + err);
     }
