@@ -21,6 +21,14 @@ check_installation() {
     fi
 }
 
+require_env_var() {
+    grep "export $1" ~/.profile  &> /dev/null
+    if [ $? -eq 1 ]
+    then
+        error "Please export environment variable in ~/.profile: $1"
+    fi
+}
+
 if [[ $_ == $0 ]]
 then
     error "Please execute the script using 'source'"
@@ -98,6 +106,14 @@ then
     echo "ci-server checked out"
 fi
 
+grep "export BUGATONE_CI_ROOT" ~/.profile  &> /dev/null
+if [ $? -eq 1 ]
+then
+    echo "Updating .profile file..."
+    echo "export BUGATONE_CI_ROOT=/home/ubuntu/ci-server" >> ~/.profile
+    source ~/.profile
+fi
+
 crontab -l > mycron
 grep "0 4 \* \* 0 find \/home\/ubuntu\/ci-server\/public\/\* -type f -ctime +7 -exec rm -rf {} \\\;" mycron  &> /dev/null
 if [ $? -eq 1 ]
@@ -124,5 +140,12 @@ then
     exit_script 1
 fi
 echo "npm modules installed"
+
+require_env_var "BUGATONE_CI_GITHUB_APP_KEY"
+require_env_var "BUGATONE_CI_GITHUB_APP_INSTALLATION_ID"
+require_env_var "BUGATONE_CI_GITHUB_APP_SECRET"
+require_env_var "BUGATONE_AUTO_GMAIL_USERNAME"
+require_env_var "BUGATONE_AUTO_GMAIL_PASSWORD"
+require_env_var "BUGATONE_NOTIFICATION_EMAILS"
 
 exit_script 0
