@@ -26,13 +26,6 @@ router.use(async(req, res, next) => {
 
     let validSignature = await GithubService.verifySignature(req.headers["x-hub-signature"], JSON.stringify(req.body));
     if (validSignature) {
-        let repoName = req.body.repository.name;
-        if (repoName != GITHUB_REPO_NAME) {
-            LogService.warn("Unexpected repository: " + repoName);
-            res.sendStatus(200);
-            return;
-        }
-    
         next();
     }
     else {
@@ -51,7 +44,7 @@ function saveLog(commitId, log) {
     return SystemService.writeFile(logPath, log);
 }
 
-function handleTestResult(pullRequestNum, commitId, testsPassed, testOutput, totalTestTime, totalQueueAndTestTime) {
+function handleTestResult(repoName, pullRequestNum, commitId, testsPassed, testOutput, totalTestTime, totalQueueAndTestTime) {
     return new Promise(async (resolve, reject) => {
         let timingReport = "Testing took " + totalTestTime + "s. Total time: " + totalQueueAndTestTime + "s (including queue).";
         LogService.log("Timing of " + commitId + ": " + timingReport);
@@ -74,16 +67,16 @@ function handleTestResult(pullRequestNum, commitId, testsPassed, testOutput, tot
                 fullMessage += "\n```\n" + testOutput.slice(-MAX_LOG_LENGTH_IN_GITHUB_COMMENTS) + "\n```";
             }
 
-            await GithubService.setCommitStatus(GITHUB_REPO_OWNER, GITHUB_REPO_NAME, commitId, status, shortMessage);
+            await GithubService.setCommitStatus(GITHUB_REPO_OWNER, repoName, commitId, status, shortMessage);
 
             await saveLog(commitId, testOutput);
             LogService.log("log saved successfully");
 
             if (pullRequestNum) {
-                await GithubService.postPullRequestComment(GITHUB_REPO_OWNER, GITHUB_REPO_NAME, pullRequestNum, fullMessage);
+                await GithubService.postPullRequestComment(GITHUB_REPO_OWNER, repoName, pullRequestNum, fullMessage);
             }
             else {
-                await GithubService.postCommitComment(GITHUB_REPO_OWNER, GITHUB_REPO_NAME, commitId, fullMessage);
+                await GithubService.postCommitComment(GITHUB_REPO_OWNER, repoName, commitId, fullMessage);
                 if (!testsPassed) {
                     await EmailService.sendEmail(process.env.BUGATONE_NOTIFICATION_EMAILS, "Tests failed in master for commit " + commitId, fullMessage);
                 }
@@ -96,10 +89,10 @@ function handleTestResult(pullRequestNum, commitId, testsPassed, testOutput, tot
     });
 }
 
-function notifyTestInProgress(commitId) {
+function notifyTestInProgress(repoName, commitId) {
     return new Promise(async (resolve, reject) => {
         try {
-            await GithubService.setCommitStatus(GITHUB_REPO_OWNER, GITHUB_REPO_NAME, commitId, "pending", "Tests started at " + dateFormat(new Date(), "yyyy-mm-dd HH:MM:ss") + " (Israel time)");
+            await GithubService.setCommitStatus(GITHUB_REPO_OWNER, repoName, commitId, "pending", "Tests started at " + dateFormat(new Date(), "yyyy-mm-dd HH:MM:ss") + " (Israel time)");
             resolve();
         } catch(err) {
             reject(err);
@@ -107,12 +100,12 @@ function notifyTestInProgress(commitId) {
     });
 }
 
-async function notifyTestError(commitId, errorMessage, testOutput) {
+async function notifyTestError(repoName, commitId, errorMessage, testOutput) {
     try {
         if (testOutput) {
             await saveLog(commitId, testOutput);
         }
-        await GithubService.setCommitStatus(GITHUB_REPO_OWNER, GITHUB_REPO_NAME, commitId, "error", testOutput ? ("See full log at: " + getLogAddress(commitId)) : errorMessage.slice(-MAX_GITHUB_COMMIT_STATUS_LENGTH));
+        await GithubService.setCommitStatus(GITHUB_REPO_OWNER, repoName, commitId, "error", testOutput ? ("See full log at: " + getLogAddress(commitId)) : errorMessage.slice(-MAX_GITHUB_COMMIT_STATUS_LENGTH));
     } catch(err) {
         LogService.error("Error notifying test error (commit " + commitId + ") to Github: " + err);
     }
@@ -122,6 +115,7 @@ router.post('/', async (req, res) => {
     let commitId;
     let pullRequestNum;
     let branch;
+    let repoName = GITHUB_REPO_NAME;
     let testQueued = false;
 
     try {
@@ -151,6 +145,7 @@ router.post('/', async (req, res) => {
             case "push_to_master":
                 commitId = req.body.after;
                 branch = "master";
+                repoName = req.body.repository.name;
 
                 break;
             default:
@@ -159,17 +154,17 @@ router.post('/', async (req, res) => {
         }
 
         testQueued = true;
-        await notifyTestInProgress(commitId);
+        await notifyTestInProgress(repoName, commitId);
         let queueStartTime = new Date();
         
         let { testsPassed, testOutput, totalTestTime } = await TestService.runTests(commitId, branch);
         
         let totalQueueAndTestTime = (new Date() - queueStartTime) / 1000;
-        await handleTestResult(pullRequestNum, commitId, testsPassed, testOutput, totalTestTime, totalQueueAndTestTime);
+        await handleTestResult(repoName, pullRequestNum, commitId, testsPassed, testOutput, totalTestTime, totalQueueAndTestTime);
     } catch(err) {
         LogService.error("Unexpected exception (commit " + commitId + "): " + JSON.stringify(err));
         if (testQueued) {
-            notifyTestError(commitId, err.message, err.output);
+            notifyTestError(repoName, commitId, err.message, err.output);
         }
     }
 });
