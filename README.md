@@ -15,6 +15,8 @@ Setup:
     sudo setcap CAP_NET_BIND_SERVICE=+eip /home/ubuntu/.nvm/versions/node/v8.11.3/bin/node
 6. Add a CRON job for cleaning up old logs (assuming you server code is in /home/ubuntu/server/ci):
     0 4 * * 0 find /home/ubuntu/server/ci/public/* -type f -ctime +7 -exec rm -rf {} \;
+7. Change server timezone to Asia/Jerusalem:
+    sudo timedatectl set-timezone Asia/Jerusalem
 
 Deployment:
 -----------
