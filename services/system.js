@@ -17,7 +17,8 @@ function exec(command, folder, timeout, libraryPath) {
         let opts = {
             cwd: folder,
             env: env,
-            shell: true
+            shell: true,
+            detached: true
         };
         let cp = spawn(command, opts);
 
@@ -64,8 +65,11 @@ function exec(command, folder, timeout, libraryPath) {
 
         setTimeout(() => {
             if (!cpClosed) {
-                LogService.error("Error: Stopping test because of timeout!!!");
-                cp.kill();
+                output += "Error: child process timeout!!!";
+                LogService.error("Error: child process timeout!!!");
+
+                process.kill(-cp.pid);
+                
                 reject({
                     message: "'" + command + "' failed in " + folder + ": timeout",
                     output: output
