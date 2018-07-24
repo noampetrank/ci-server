@@ -17,6 +17,7 @@ const LOG_PATH = process.env.BUGATONE_CI_ROOT + "/public";
 const LOG_FILE_NAME_PREFIX = "test_output";
 const SERVER_ADRESS = "http://ci.bugatone.com";
 const MAX_LOG_LENGTH_IN_GITHUB_COMMENTS = 10000;
+const MAX_GITHUB_COMMIT_STATUS_LENGTH = 140;
 
 router.use(async(req, res, next) => {
     LogService.log("\n\n************Request Body************");
@@ -111,8 +112,7 @@ async function notifyTestError(commitId, errorMessage, testOutput) {
         if (testOutput) {
             await saveLog(commitId, testOutput);
         }
-        await GithubService.setCommitStatus(GITHUB_REPO_OWNER, GITHUB_REPO_NAME, commitId, "error", "Tests error: " + errorMessage +
-            (testOutput ? ("See full log at: " + getLogAddress(commitId) + "\n```\n" + testOutput.slice(-MAX_LOG_LENGTH_IN_GITHUB_COMMENTS) + "\n```") : ""));
+        await GithubService.setCommitStatus(GITHUB_REPO_OWNER, GITHUB_REPO_NAME, commitId, "error", testOutput ? ("See full log at: " + getLogAddress(commitId)) : errorMessage.slice[-MAX_GITHUB_COMMIT_STATUS_LENGTH]);
     } catch(err) {
         LogService.error("Error notifying test error (commit " + commitId + ") to Github: " + err);
     }
