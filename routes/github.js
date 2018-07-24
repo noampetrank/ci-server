@@ -178,12 +178,13 @@ function getEventParams(requestBody) {
 
 router.post('/', async (req, res) => {
     let testQueued = false;
+    let eventParams;
 
     try {
         // First we send a response. Then we handle the event.
         res.sendStatus(200);
 
-        let eventParams = getEventParams(req.body);
+        eventParams = getEventParams(req.body);
         if (!eventParams) {
             LogService.log("Ignoring request");
             return;
@@ -198,7 +199,7 @@ router.post('/', async (req, res) => {
         let totalQueueAndTestTime = (new Date() - queueStartTime) / 1000;
         await handleTestResult(eventParams.repoName, eventParams.pullRequestNum, eventParams.commitId, testsPassed, testOutput, totalTestTime, totalQueueAndTestTime);
     } catch(err) {
-        LogService.error("Unexpected exception (commit " + eventParams.commitId + "): " + JSON.stringify(err));
+        LogService.error("Unexpected exception" + (eventParams ? " (commit " + eventParams.commitId + ")" : "") + ": " + JSON.stringify(err));
         if (testQueued) {
             notifyTestError(eventParams.repoName, eventParams.commitId, err.message, err.output);
         }
