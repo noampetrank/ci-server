@@ -12,7 +12,7 @@ const MOBILEPRODUCT_FOLDER = process.env.HOME + "/mobileproduct";
 const BUGATONE_SPACE_FOLDER = process.env.HOME + "/Bugatone-Space";
 const TEST_FILES_FOLDER = process.env.HOME + "/test-files";
 const GIT_LFS_TIMEOUT = 1000 * 60 * 20 // 20 minutes
-const BUILD_TIMEOUT = 1000 * 60 * 5 // 5 minutes
+const BUILD_TIMEOUT = 1000 * 60 * 10 // 10 minutes
 const GTEST_PARALLEL_ERROR_LOG_PATH = MOBILEPRODUCT_FOLDER + "/gtest-parallel-logs/failed"
 
 function lock(commitId) {
