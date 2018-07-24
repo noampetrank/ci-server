@@ -10,11 +10,11 @@ Setup:
     BUGATONE_AUTO_GMAIL_USERNAME - The Gmail account to send automatic email from.
     BUGATONE_AUTO_GMAIL_PASSWORD - Password of the above account.
     BUGATONE_NOTIFICATION_EMAILS - comma-separated list of emails to receive notifications when someone broke the master branch.
-    BUGATONE_CI_ROOT - Path to the CI server root folder (e.g. /home/ubuntu/server/ci).
+    BUGATONE_CI_ROOT - Path to the CI server root folder (e.g. /home/ubuntu/ci-server).
 5. Execute this command to allow the normal user use port 80 (replace the path with the value returned when running: 'node -v'):
     sudo setcap CAP_NET_BIND_SERVICE=+eip /home/ubuntu/.nvm/versions/node/v8.11.3/bin/node
-6. Add a CRON job for cleaning up old logs (assuming you server code is in /home/ubuntu/server/ci):
-    0 4 * * 0 find /home/ubuntu/server/ci/public/* -type f -ctime +7 -exec rm -rf {} \;
+6. Add a CRON job for cleaning up old logs (assuming you server code is in /home/ubuntu/ci-server):
+    0 4 * * 0 find /home/ubuntu/ci-server/public/* -type f -ctime +7 -exec rm -rf {} \;
 7. Change server timezone to Asia/Jerusalem:
     sudo timedatectl set-timezone Asia/Jerusalem
 
@@ -28,8 +28,8 @@ Deployment:
     git pull
 4. Run this command from the 'ci' folder for installing necessary node modules:
     npm install
-5. Deploy (assuming you server code is in /home/ubuntu/server/ci):
-    forever start /home/ubuntu/server/ci/bin/www
+5. Deploy (assuming you server code is in /home/ubuntu/ci-server):
+    forever start /home/ubuntu/ci-server/bin/www
 6. Verify the deployment is active:
     forever list
 7. Watch the log from 'forever list' output.
