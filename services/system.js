@@ -64,6 +64,7 @@ function exec(command, folder, timeout, libraryPath) {
 
         setTimeout(() => {
             if (!cpClosed) {
+                LogService.error("Error: Stopping test because of timeout!!!");
                 cp.kill();
                 reject({
                     message: "'" + command + "' failed in " + folder + ": timeout",
