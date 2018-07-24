@@ -20,7 +20,7 @@ const GTEST_PARALLEL_ERROR_LOG_PATH = MOBILEPRODUCT_FOLDER + "/gtest-parallel-lo
 function lock(commitId) {
     return new Promise(resolve => {
         LogService.log("Commit " + commitId + " is waiting for lock...");
-        lockFile.lock(LOCK_FILE, { stale: LOCK_TIMEOUT }, function (err) {
+        lockFile.lock(LOCK_FILE, { wait: LOCK_TIMEOUT }, function (err) {
             if (err) {
                 LogService.error("Error: Unable to acquire lock: " + err);
                 resolve(false);
