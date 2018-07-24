@@ -1,7 +1,8 @@
 'use strict';
 
 function timeStr() {
-    return new Date().toLocaleString();
+    let date = new Date();
+    return new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().replace("T", " ").replace("Z", "");
 }
 
 function getFullLog(message) {
