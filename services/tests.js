@@ -73,6 +73,7 @@ function runTests(commitId, branch) {
                 totalTestTime: totalTestTime
             });
         } catch(err) {
+            unlock(commitId);
             LogService.error("Running tests for branch '" + branch + "' failed: " + err.message);
             reject(err);
         }
