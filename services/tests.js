@@ -1,6 +1,8 @@
 'use strict';
 
-const lockFile = require('lockfile')
+const lockFile = require("lockfile");
+const stripColor = require("strip-color");
+
 const SystemService = require("./system");
 const GitService = require("./git");
 const LogService = require("./log");
@@ -112,10 +114,11 @@ function getGtestParallelFailureLogs() {
             let logs = await Promise.all(readTasks);
             LogService.log("Failed logs read successfully");
 
-            let errorLog = "";
+            let errorLog = "\nFailed C++ tests:";
             for (let log of logs) {
-                errorLog += "\n" + log;
+                errorLog += "\n" + stripColor(log.toString());
             }
+            console.log(errorLog);
             resolve(errorLog);
 
         } catch(err) {

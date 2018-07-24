@@ -19,6 +19,7 @@
     "morgan": "~1.9.0",
     "nodemailer": "^4.6.7",
     "path": "^0.12.7",
+    "strip-color": "^0.1.0",
     "verify-github-webhook": "^1.0.1"
   }
 }
