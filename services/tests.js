@@ -149,7 +149,7 @@ function prepareRepo(folder, branch, pullTimeout) {
             await GitService.resetRepo(folder);
             await GitService.fetchRepo(folder);
             await GitService.checkoutRepo(folder, branch);
-            await GitService.pullRepo(folder, pullTimeout);
+            await GitService.pullRepo(folder, branch, pullTimeout);
             resolve();
         } catch(err) {
             LogService.error("Preparing " + folder + " failed: " + err.message);
