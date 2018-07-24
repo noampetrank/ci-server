@@ -99,41 +99,6 @@ function runTestsCycle(branch) {
     });
 }
 
-function getGtestParallelFailureLogs() {
-    const ENOENT = -2;
-
-    return new Promise(async (resolve, reject) => {
-        try {
-            let errorLogFiles = await SystemService.listDir(GTEST_PARALLEL_ERROR_LOG_PATH);
-
-            let readTasks = [];
-            for (let errorLogFile of errorLogFiles) {
-                readTasks.push(SystemService.readFile(GTEST_PARALLEL_ERROR_LOG_PATH + "/" + errorLogFile));
-            } 
-            LogService.log("Waiting for all failed logs to be read: " + errorLogFiles.join(", "));
-            let logs = await Promise.all(readTasks);
-            LogService.log("Failed logs read successfully");
-
-            let errorLog = "\nFailed C++ tests:";
-            for (let log of logs) {
-                errorLog += "\n" + stripColor(log.toString());
-            }
-            console.log(errorLog);
-            resolve(errorLog);
-
-        } catch(err) {
-            if (err.errno == ENOENT) {
-                LogService.log("No failed C++ tests found");
-                resolve("");
-            }
-            else {
-                LogService.error("Unable to read gtest-parallel logs: " + err);
-                reject(err);
-            }
-        }
-    });
-}
-
 async function prepareBugatoneSpace() {
     return await prepareRepo(BUGATONE_SPACE_FOLDER, "master");
 }
@@ -200,6 +165,41 @@ function testMobileproduct(branch) {
                 output: err.output,
                 message: err.message
             });
+        }
+    });
+}
+
+function getGtestParallelFailureLogs() {
+    const ENOENT = -2;
+
+    return new Promise(async (resolve, reject) => {
+        try {
+            let errorLogFiles = await SystemService.listDir(GTEST_PARALLEL_ERROR_LOG_PATH);
+
+            let readTasks = [];
+            for (let errorLogFile of errorLogFiles) {
+                readTasks.push(SystemService.readFile(GTEST_PARALLEL_ERROR_LOG_PATH + "/" + errorLogFile));
+            } 
+            LogService.log("Waiting for all failed logs to be read: " + errorLogFiles.join(", "));
+            let logs = await Promise.all(readTasks);
+            LogService.log("Failed logs read successfully");
+
+            let errorLog = "\nFailed C++ tests:";
+            for (let log of logs) {
+                errorLog += "\n" + stripColor(log.toString());
+            }
+            console.log(errorLog);
+            resolve(errorLog);
+
+        } catch(err) {
+            if (err.errno == ENOENT) {
+                LogService.log("No failed C++ tests found");
+                resolve("");
+            }
+            else {
+                LogService.error("Unable to read gtest-parallel logs: " + err);
+                reject(err);
+            }
         }
     });
 }
