@@ -28,8 +28,8 @@ Deployment:
     git pull
 4. Run this command from the 'ci' folder for installing necessary node modules:
     npm install
-5. Deploy (assuming you server code is in /home/ubuntu/ci-server):
-    forever start /home/ubuntu/ci-server/bin/www
+5. Deploy - Execute this command from ci-server folder:
+    forever start -c "npm start" ./
 6. Verify the deployment is active:
     forever list
 7. Watch the log from 'forever list' output.

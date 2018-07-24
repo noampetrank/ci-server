@@ -4,8 +4,8 @@ const octokit = require('@octokit/rest')();
 const jsonwebtoken = require('jsonwebtoken');
 const verifyGithubWebhook = require("verify-github-webhook").default;
 
-const LogService = require("./log");
-const SystemService = require("./system");
+const LogService = require("services/log");
+const SystemService = require("services/system");
 
 const BUGATONE_CI_GITHUB_APP_ID = 14241;
 const BUGATONE_CI_GITHUB_APP_PEM = SystemService.readFileSync(process.env.BUGATONE_CI_GITHUB_APP_KEY);

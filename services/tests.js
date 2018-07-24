@@ -3,9 +3,9 @@
 const lockFile = require("lockfile");
 const stripColor = require("strip-color");
 
-const SystemService = require("./system");
-const GitService = require("./git");
-const LogService = require("./log");
+const SystemService = require("services/system");
+const GitService = require("services/git");
+const LogService = require("services/log");
 
 const LOCK_FILE = process.env.HOME + "/github.lock"
 const LOCK_TIMEOUT = 1000 * 60 * 20 // 20 minutes

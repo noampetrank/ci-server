@@ -1,7 +1,7 @@
 'use strict';
 
-const SystemService = require("./system");
-const LogService = require("./log");
+const SystemService = require("services/system");
+const LogService = require("services/log");
 
 const GIT_TIMEOUT = 1000 * 20 // 20 seconds
 

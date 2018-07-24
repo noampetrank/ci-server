@@ -1,7 +1,7 @@
 'use strict';
 
 const nodemailer = require('nodemailer');
-const LogService = require("./log");
+const LogService = require('services/log');
 
 function sendEmail(recipients, subject, body) {
     return new Promise(async (resolve, reject) => {

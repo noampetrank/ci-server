@@ -5,7 +5,7 @@ const fs = require("fs");
 const mkdirp = require('mkdirp');
 const path = require('path');
 
-const LogService = require("./log");
+const LogService = require("services/log");
 
 function exec(command, folder, timeout, libraryPath) {
     return new Promise((resolve, reject) => {

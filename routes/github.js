@@ -4,11 +4,11 @@ const express = require('express');
 const router = express.Router();
 const dateFormat = require('dateformat');
 
-const TestService = require('../services/tests');
-const GithubService = require('../services/github');
-const EmailService = require('../services/email');
-const LogService = require("../services/log");
-const SystemService = require("../services/system");
+const TestService = require('services/tests');
+const GithubService = require('services/github');
+const EmailService = require('services/email');
+const LogService = require('services/log');
+const SystemService = require('services/system');
 
 const GITHUB_REPO_OWNER = "bugatone";
 
