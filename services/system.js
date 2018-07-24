@@ -1,9 +1,8 @@
 'use strict';
 
 const { spawn } = require('child_process');
-const fs = require("fs");
-const mkdirp = require('mkdirp');
-const path = require('path');
+const bluebird = require("bluebird");
+const fs = bluebird.promisifyAll(require("fs"));
 
 const LogService = require("services/log");
 
@@ -79,70 +78,22 @@ function exec(command, folder, timeout, libraryPath) {
     });
 }
 
-function readFile(filePath) {
-    return new Promise((resolve, reject) => {
-        fs.readFile(filePath, (err, data) => {
-            if (err) {
-                reject(err);
-            }
-            else {
-                resolve(data);
-            }
-        });
-    });
+async function readFile(filePath) {
+    return fs.readFileAsync(filePath);
 }
 
 function readFileSync(filePath) {
     return fs.readFileSync(filePath);
 }
 
-function makeDir(dirPath) {
-    return new Promise((resolve, reject) => {
-        mkdirp(dirPath, { mode: parseInt('0755', 8) }, (err) => {
-            if (err) {
-                reject(err);
-            }
-            else {
-                resolve();
-            }
-        });
-    });
+async function writeFile(filePath, data) {
+    LogService.log("Writing file: " + filePath);
+    await fs.writeFileAsync(filePath, data, { flag: "w+" });
+    LogService.log("File written successfully: " + filePath);
 }
 
-function writeFile(filePath, data) {
-    return new Promise(async (resolve, reject) => {
-        try {
-            let dirPath = path.dirname(filePath);
-            LogService.log("Creating directory: " + dirPath);
-            await makeDir(dirPath);
-            LogService.log("Directory created successfully: " + dirPath);
-            LogService.log("Writing file: " + filePath);
-            fs.writeFile(filePath, data, { flag: "w+" }, (err) => {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    LogService.log("File written successfully: " + filePath);
-                    resolve();
-                }
-            });
-        } catch(err) {
-            reject(err);
-        }
-    });
-}
-
-function listDir(path) {
-    return new Promise(async (resolve, reject) => {
-        fs.readdir(path, (err, files) => {
-            if (err) {
-                reject(err);
-            }
-            else {
-                resolve(files);
-            }
-        });
-    });
+async function listDir(path) {
+    return fs.readdirAsync(path);
 }
 
 module.exports = {

@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "@octokit/rest": "^15.9.4",
+    "bluebird": "^3.5.1",
     "cookie-parser": "^1.4.3",
     "dateformat": "^3.0.3",
     "debug": "~2.6.9",
@@ -15,7 +16,6 @@
     "jade": "~1.11.0",
     "jsonwebtoken": "^8.3.0",
     "lockfile": "^1.0.4",
-    "mkdirp": "^0.5.1",
     "morgan": "~1.9.0",
     "nodemailer": "^4.6.7",
     "path": "^0.12.7",

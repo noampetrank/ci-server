@@ -28,89 +28,73 @@ function generateJwtToken() {
     );
 }
 
-function authenticateApp() {
-    return new Promise(async (resolve, reject) => {
-        try {
-            octokit.authenticate({
-                type: 'app',
-                token: generateJwtToken(),
-            });
+async function authenticateApp() {
+    try {
+        octokit.authenticate({
+            type: 'app',
+            token: generateJwtToken(),
+        });
 
-            const { data: { token } } = await octokit.apps.createInstallationToken({
-                installation_id: process.env.BUGATONE_CI_GITHUB_APP_INSTALLATION_ID
-            });
-            octokit.authenticate({ type: 'token', token });
-
-            resolve();
-        } catch(err) {
-            reject("Error authenticating app: " + err);
-        }
-    });
+        const { data: { token } } = await octokit.apps.createInstallationToken({
+            installation_id: process.env.BUGATONE_CI_GITHUB_APP_INSTALLATION_ID
+        });
+        octokit.authenticate({ type: 'token', token });
+    } catch(err) {
+        throw "Error authenticating app: " + err;
+    }
 }
 
-function setCommitStatus(owner, repo, commitId, state, description) {
-    return new Promise(async (resolve, reject) => {
-        try {
-            await authenticateApp();
+async function setCommitStatus(owner, repo, commitId, state, description) {
+    try {
+        await authenticateApp();
 
-            LogService.log("Creating commit status...");
-            await octokit.repos.createStatus({
-                owner: owner,
-                repo: repo,
-                sha: commitId,
-                state: state,
-                description: description,
-                context: BUGATONE_CI_CONTEXT_STRING
-            });
-            LogService.log("Commit status created successfully");
- 
-            resolve();
-        } catch(err) {
-            reject("Error setting commit status: " + err);
-        }
-    });
+        LogService.log("Creating commit status...");
+        await octokit.repos.createStatus({
+            owner: owner,
+            repo: repo,
+            sha: commitId,
+            state: state,
+            description: description,
+            context: BUGATONE_CI_CONTEXT_STRING
+        });
+        LogService.log("Commit status created successfully");
+    } catch(err) {
+        throw "Error setting commit status: " + err;
+    }
 }
 
-function postPullRequestComment(owner, repo, pullRequestNum, commentText) {
-    return new Promise(async (resolve, reject) => {
-        try {
-            await authenticateApp();
+async function postPullRequestComment(owner, repo, pullRequestNum, commentText) {
+    try {
+        await authenticateApp();
 
-            LogService.log("Creating pull request comment...");
-            await octokit.issues.createComment({
-                owner: owner,
-                repo: repo,
-                number: pullRequestNum,
-                body: commentText
-            });
-            LogService.log("Pull request comment created successfully");
- 
-            resolve();
-        } catch(err) {
-            reject("Error posting pull request comment: " + err);
-        }
-    });
+        LogService.log("Creating pull request comment...");
+        await octokit.issues.createComment({
+            owner: owner,
+            repo: repo,
+            number: pullRequestNum,
+            body: commentText
+        });
+        LogService.log("Pull request comment created successfully");
+    } catch(err) {
+        throw "Error posting pull request comment: " + err;
+    }
 }
 
-function postCommitComment(owner, repo, commitId, commentText) {
-    return new Promise(async (resolve, reject) => {
-        try {
-            await authenticateApp();
+async function postCommitComment(owner, repo, commitId, commentText) {
+    try {
+        await authenticateApp();
 
-            LogService.log("Creating commit comment...");
-            await octokit.repos.createCommitComment({
-                owner: owner,
-                repo: repo,
-                sha: commitId,
-                body: commentText
-            });
-            LogService.log("Commit comment created successfully");
- 
-            resolve();
-        } catch(err) {
-            reject("Error posting commit comment: " + err);
-        }
-    });
+        LogService.log("Creating commit comment...");
+        await octokit.repos.createCommitComment({
+            owner: owner,
+            repo: repo,
+            sha: commitId,
+            body: commentText
+        });
+        LogService.log("Commit comment created successfully");
+    } catch(err) {
+        throw "Error posting commit comment: " + err;
+    }
 }
 
 module.exports = {

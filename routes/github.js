@@ -77,48 +77,33 @@ function getTimingReport(totalTestTime, totalQueueAndTestTime) {
     return "Testing took " + totalTestTime + "s. Total time: " + totalQueueAndTestTime + "s (including queue).";
 }
 
-function handleTestResult(repoName, pullRequestNum, commitId, testsPassed, testOutput, totalTestTime, totalQueueAndTestTime) {
-    return new Promise(async (resolve, reject) => {
-        let isPullRequest = !!pullRequestNum;
-        
-        LogService.log("Timing of " + commitId + ": " + getTimingReport(totalTestTime, totalQueueAndTestTime));
+async function handleTestResult(repoName, pullRequestNum, commitId, testsPassed, testOutput, totalTestTime, totalQueueAndTestTime) {
+    let isPullRequest = !!pullRequestNum;
+    
+    LogService.log("Timing of " + commitId + ": " + getTimingReport(totalTestTime, totalQueueAndTestTime));
 
-        try {
-            let shortMessage = createResultMessage(testsPassed, totalTestTime, totalQueueAndTestTime, commitId, testOutput, true);
-            let fullMessage = createResultMessage(testsPassed, totalTestTime, totalQueueAndTestTime, commitId, testOutput, false);
+    let shortMessage = createResultMessage(testsPassed, totalTestTime, totalQueueAndTestTime, commitId, testOutput, true);
+    let fullMessage = createResultMessage(testsPassed, totalTestTime, totalQueueAndTestTime, commitId, testOutput, false);
 
-            await GithubService.setCommitStatus(GITHUB_REPO_OWNER, repoName, commitId, getCommitState(testsPassed), shortMessage);
+    await GithubService.setCommitStatus(GITHUB_REPO_OWNER, repoName, commitId, getCommitState(testsPassed), shortMessage);
 
-            await saveLog(commitId, testOutput);
-            LogService.log("log saved successfully");
+    await saveLog(commitId, testOutput);
+    LogService.log("log saved successfully");
 
-            if (isPullRequest) {
-                await GithubService.postPullRequestComment(GITHUB_REPO_OWNER, repoName, pullRequestNum, fullMessage);
-            }
-            else {
-                // This is a push to master.
-                await GithubService.postCommitComment(GITHUB_REPO_OWNER, repoName, commitId, fullMessage);
-                if (!testsPassed) {
-                    await EmailService.sendEmail(process.env.BUGATONE_NOTIFICATION_EMAILS, "Tests failed in master for commit " + commitId, fullMessage);
-                }
-            }
-
-            resolve();
-        } catch(err) {
-            reject(err);
+    if (isPullRequest) {
+        await GithubService.postPullRequestComment(GITHUB_REPO_OWNER, repoName, pullRequestNum, fullMessage);
+    }
+    else {
+        // This is a push to master.
+        await GithubService.postCommitComment(GITHUB_REPO_OWNER, repoName, commitId, fullMessage);
+        if (!testsPassed) {
+            await EmailService.sendEmail(process.env.BUGATONE_NOTIFICATION_EMAILS, "Tests failed in master for commit " + commitId, fullMessage);
         }
-    });
+    }
 }
 
-function notifyTestInProgress(repoName, commitId) {
-    return new Promise(async (resolve, reject) => {
-        try {
-            await GithubService.setCommitStatus(GITHUB_REPO_OWNER, repoName, commitId, "pending", "Tests started at " + dateFormat(new Date(), "yyyy-mm-dd HH:MM:ss") + " (Israel time)");
-            resolve();
-        } catch(err) {
-            reject(err);
-        }
-    });
+async function notifyTestInProgress(repoName, commitId) {
+    await GithubService.setCommitStatus(GITHUB_REPO_OWNER, repoName, commitId, "pending", "Tests started at " + dateFormat(new Date(), "yyyy-mm-dd HH:MM:ss") + " (Israel time)");
 }
 
 async function notifyTestError(repoName, commitId, errorMessage, testOutput) {
