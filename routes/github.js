@@ -117,17 +117,6 @@ async function notifyTestInProgress(repoName, commitId) {
     await GithubService.setCommitStatus(GITHUB_REPO_OWNER, repoName, commitId, "pending", "Tests started at " + dateFormat(new Date(), "yyyy-mm-dd HH:MM:ss") + " (Israel time)");
 }
 
-async function notifyTestError(repoName, commitId, errorMessage, testOutput) {
-    try {
-        if (testOutput) {
-            await saveLog(commitId, testOutput);
-        }
-        await GithubService.setCommitStatus(GITHUB_REPO_OWNER, repoName, commitId, "error", testOutput ? ("See full log at: " + getLogAddress(commitId)) : errorMessage.slice(-MAX_GITHUB_COMMIT_STATUS_LENGTH));
-    } catch(err) {
-        LogService.error("Error notifying test error (commit " + commitId + ") to Github: " + err);
-    }
-}
-
 function getEventAction(requestBody) {
     let action = requestBody.action;
     if (!action) {
@@ -175,6 +164,7 @@ function getEventParams(requestBody) {
 router.post('/', async (req, res) => {
     let testQueued = false;
     let eventParams;
+    let queueStartTime;
 
     try {
         // First we send a response. Then we handle the event.
@@ -188,7 +178,7 @@ router.post('/', async (req, res) => {
 
         await notifyTestInProgress(eventParams.repoName, eventParams.commitId);
         testQueued = true;
-        let queueStartTime = new Date();
+        queueStartTime = new Date();
         
         let { testsPassed, testOutput, totalTestTime } = await TestService.runTests(eventParams.commitId, eventParams.branch);
         
@@ -198,7 +188,8 @@ router.post('/', async (req, res) => {
         err = ErrorService.getErrorWithOutput(err);
         LogService.error("Unexpected exception" + (eventParams ? " (commit " + eventParams.commitId + ")" : "") + ": " + err.message);
         if (testQueued) {
-            notifyTestError(eventParams.repoName, eventParams.commitId, err.message, err.output);
+            let testTime = (new Date() - queueStartTime) / 1000;
+            handleTestResult(eventParams.repoName, eventParams.pullRequestNum, eventParams.commitId, false, err.message + "\n" + err.output, testTime, testTime);
         }
     }
 });
