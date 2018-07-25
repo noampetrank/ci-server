@@ -19,17 +19,27 @@ const MAX_LOG_LENGTH_IN_GITHUB_COMMENTS = 10000;
 const MAX_GITHUB_COMMIT_STATUS_LENGTH = 140;
 
 router.use(async(req, res, next) => {
-    LogService.log("\n\n************Request Body************");
-    console.log(req.body);
-    LogService.log("************************************\n\n");
+    try {
+        LogService.log("\n\n************Request Body************");
+        console.log(req.body);
+        LogService.log("************************************\n\n");
 
-    let validSignature = await GithubService.verifySignature(req.headers["x-hub-signature"], JSON.stringify(req.body));
-    if (validSignature) {
-        next();
-    }
-    else {
-        LogService.warn("Verification failed");
-        res.status(401).send({ error: 'Invalid signature' })
+        if (!("x-hub-signature" in req.headers)) {
+            res.status(400).send({ error: 'Missing header: x-hub-signature' });
+            return;
+        }
+
+        let validSignature = await GithubService.verifySignature(req.headers["x-hub-signature"], JSON.stringify(req.body));
+        if (validSignature) {
+            next();
+        }
+        else {
+            LogService.warn("Verification failed");
+            res.status(401).send({ error: 'Invalid signature' })
+        }
+    } catch(err) {
+        LogService.error("Internal server error!!! " + err);
+        res.status(500).send({ error: "Internal server error" });
     }
 });
 
