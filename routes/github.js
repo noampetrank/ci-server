@@ -9,6 +9,7 @@ const GithubService = require('services/github');
 const EmailService = require('services/email');
 const LogService = require('services/log');
 const SystemService = require('services/system');
+const ErrorService = require('services/error');
 
 const GITHUB_REPO_OWNER = "bugatone";
 
@@ -194,7 +195,8 @@ router.post('/', async (req, res) => {
         let totalQueueAndTestTime = (new Date() - queueStartTime) / 1000;
         await handleTestResult(eventParams.repoName, eventParams.pullRequestNum, eventParams.commitId, testsPassed, testOutput, totalTestTime, totalQueueAndTestTime);
     } catch(err) {
-        LogService.error("Unexpected exception" + (eventParams ? " (commit " + eventParams.commitId + ")" : "") + ": " + JSON.stringify(err));
+        err = ErrorService.getErrorWithOutput(err);
+        LogService.error("Unexpected exception" + (eventParams ? " (commit " + eventParams.commitId + ")" : "") + ": " + err.message);
         if (testQueued) {
             notifyTestError(eventParams.repoName, eventParams.commitId, err.message, err.output);
         }

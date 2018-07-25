@@ -6,6 +6,7 @@ const stripColor = require("strip-color");
 const SystemService = require("services/system");
 const GitService = require("services/git");
 const LogService = require("services/log");
+const ErrorService = require('services/error');
 
 const LOCK_FILE = process.env.HOME + "/github.lock"
 const LOCK_TIMEOUT = 1000 * 60 * 20 // 20 minutes
@@ -48,9 +49,7 @@ async function runTests(commitId, branch) {
     try {
         let locked = await lock(commitId);
         if (!locked) {
-            throw {
-                message: "Unable to lock"
-            };
+            throw "Unable to lock";
         }
 
         let testStartTime = new Date();
@@ -74,6 +73,7 @@ async function runTests(commitId, branch) {
         };
     } catch(err) {
         unlock(commitId);
+        err = ErrorService.getErrorWithOutput(err);
         LogService.error("Running tests for branch '" + branch + "' failed: " + err.message);
         throw err;
     }
@@ -96,6 +96,7 @@ async function runTestsCycle(branch) {
         result.output = "Building Android:\n\n" + androidResult.output + "\n\nBuilding and Testing Linux:\n\n" + result.output;
         return result;
     } catch(err) {
+        err = ErrorService.getErrorWithOutput(err);
         LogService.error("Running test cycle for branch '" + branch + "' failed: " + err.message);
         throw err;
     }
@@ -120,6 +121,7 @@ async function prepareRepo(folder, branch, pullTimeout) {
         await GitService.checkoutRepo(folder, branch);
         await GitService.pullRepo(folder, branch, pullTimeout);
     } catch(err) {
+        err = ErrorService.getErrorWithOutput(err);
         LogService.error("Preparing " + folder + " failed: " + err.message);
         throw err;
     }
@@ -130,13 +132,14 @@ async function buildBugatoneSpace() {
         LogService.log("Building Bugatone-Space...");
         let buildResult = await SystemService.exec("./make.sh linux", BUGATONE_SPACE_FOLDER, BUILD_TIMEOUT, BUGATONE_SPACE_FOLDER + "/lib/linux_x86");
         if (buildResult.returnCode != 0) {
-            throw {
-                message: "Error building " + folder + ": return value is " + buildResult.returnCode,
-                output: buildResult.output
-            };
+            throw new ErrorService.ErrorWithOutput(
+                "Error building " + folder + ": return value is " + buildResult.returnCode,
+                buildResult.output
+            );
         }
         LogService.log("Building Bugatone-Space successful");
     } catch(err) {
+        err = ErrorService.getErrorWithOutput(err);
         LogService.error("Building Bugatone-Space failed: " + err.message);
         throw err;
     }

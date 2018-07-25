@@ -5,6 +5,7 @@ const bluebird = require("bluebird");
 const fs = bluebird.promisifyAll(require("fs"));
 
 const LogService = require("services/log");
+const ErrorService = require('services/error');
 
 function exec(command, folder, timeout, libraryPath) {
     return new Promise((resolve, reject) => {
@@ -56,10 +57,7 @@ function exec(command, folder, timeout, libraryPath) {
 
         cp.on("error", (err) => {
             cpClosed = true;
-            reject({
-                message: err,
-                output: output
-            });
+            reject(getErrorWithOutput(err, output));
         });
 
         setTimeout(() => {
@@ -69,10 +67,7 @@ function exec(command, folder, timeout, libraryPath) {
 
                 process.kill(-cp.pid);
                 
-                reject({
-                    message: "'" + command + "' failed in " + folder + ": timeout",
-                    output: output
-                });
+                reject(new ErrorService.ErrorWithOutput("'" + command + "' failed in " + folder + ": timeout", output));
             }
         }, timeout);
     });
