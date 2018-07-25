@@ -43,3 +43,8 @@ When deploying from scratch:
     pm2 status
 7. Watch the log:
     pm2 logs
+
+Verify app is active:
+---------------------
+Go to this address from your browser: http://ci.bugatone.com/test
+If you get status 200, then app is active.
