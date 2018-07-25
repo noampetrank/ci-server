@@ -1,0 +1,25 @@
+{
+  "name": "ci-server",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "NODE_PATH=. node ./bin/www"
+  },
+  "dependencies": {
+    "@octokit/rest": "^15.9.4",
+    "bluebird": "^3.5.1",
+    "cookie-parser": "^1.4.3",
+    "dateformat": "^3.0.3",
+    "debug": "~2.6.9",
+    "express": "^4.16.3",
+    "http-errors": "^1.6.3",
+    "jade": "~1.11.0",
+    "jsonwebtoken": "^8.3.0",
+    "lockfile": "^1.0.4",
+    "morgan": "~1.9.0",
+    "nodemailer": "^4.6.7",
+    "path": "^0.12.7",
+    "strip-color": "^0.1.0",
+    "verify-github-webhook": "^1.0.1"
+  }
+}
