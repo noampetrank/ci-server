@@ -79,15 +79,15 @@ then
 fi
 echo "Timezone set"
 
-check_installation "forever" "which forever"
+check_installation "pm2" "which pm2"
 if [ $? -eq 0 ]
 then
-    echo "Installing forever..."
-    sudo npm install forever -g
-    check_installation "forever" "which forever"
+    echo "Installing pm2..."
+    sudo npm install pm2 -g
+    check_installation "pm2" "which pm2"
     if [ $? -ne 0 ]
     then
-        error "Error installing forever. Exiting"
+        error "Error installing pm2. Exiting"
         exit_script 1
     fi
 fi

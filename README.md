@@ -20,16 +20,26 @@ Setup:
 
 Deployment:
 -----------
+When updating code on an active deployment:
+1. Pull latest code:
+    git pull
+2. Run this command from the 'ci' folder for installing necessary node modules:
+    npm install
+3. Reload app:
+    pm2 reload all
+
+When deploying from scratch:
 1. Stop previous deployment:
-    forever stopall
+    pm2 stop all
 2. Verify no deployments are active:
-    forever list
+    pm2 status
 3. Pull latest code:
     git pull
 4. Run this command from the 'ci' folder for installing necessary node modules:
     npm install
 5. Deploy - Execute this command from ci-server folder:
-    forever start -c "npm start" ./
+    p2m start pm2.config.js
 6. Verify the deployment is active:
-    forever list
-7. Watch the log from 'forever list' output.
+    pm2 status
+7. Watch the log:
+    pm2 logs
