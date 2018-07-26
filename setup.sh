@@ -102,6 +102,7 @@ then
         error "Error cloning ci-server. Exiting"
         exit_script 1
     fi
+    mkdir public
     sudo chown -R ubuntu:ubuntu ci-server
     echo "ci-server checked out"
 fi
