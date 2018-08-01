@@ -45,7 +45,7 @@ function unlock(commitId) {
     });
 }
 
-async function runTests(commitId, branch) {
+async function runTests(repoName, commitId, branch) {
     try {
         let locked = await lock(commitId);
         if (!locked) {
@@ -53,7 +53,7 @@ async function runTests(commitId, branch) {
         }
 
         let testStartTime = new Date();
-        let testResult = await runTestsCycle(branch);
+        let testResult = await runTestsCycle(repoName, branch);
         let totalTestTime = (new Date() - testStartTime) / 1000;
 
         if (!testResult.testsPassed) {
@@ -79,14 +79,30 @@ async function runTests(commitId, branch) {
     }
 }
 
-async function runTestsCycle(branch) {
+async function runTestsCycle(repoName, branch) {
     try {
-        await prepareBugatoneSpace();
+        if (repoName == "Bugatone-Space") {
+            await prepareBugatoneSpace(branch);
+        }
+        else {
+            await prepareBugatoneSpace("master");
+        }
         await buildBugatoneSpace();
 
-        await prepareTestFiles();
+        if (repoName == "test-files") {
+            await prepareTestFiles(branch);
+        }
+        else {
+            await prepareTestFiles("master");
+        }
 
-        await prepareMobileproduct(branch);
+        if (repoName == "mobileproduct") {
+            await prepareMobileproduct(branch);
+        }
+        else {
+            await prepareMobileproduct("master");
+        }
+        
         let androidResult = await BuildAndroidMobileproduct();
         if (!androidResult.testsPassed) {
             LogService.error("Android build failed");
@@ -102,12 +118,12 @@ async function runTestsCycle(branch) {
     }
 }
 
-async function prepareBugatoneSpace() {
-    return await prepareRepo(BUGATONE_SPACE_FOLDER, "master");
+async function prepareBugatoneSpace(branch) {
+    return await prepareRepo(BUGATONE_SPACE_FOLDER, branch);
 }
 
-async function prepareTestFiles() {
-    return await prepareRepo(TEST_FILES_FOLDER, "master", GIT_LFS_TIMEOUT);
+async function prepareTestFiles(branch) {
+    return await prepareRepo(TEST_FILES_FOLDER, branch, GIT_LFS_TIMEOUT);
 }
 
 async function prepareMobileproduct(branch) {

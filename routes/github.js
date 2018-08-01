@@ -180,7 +180,7 @@ router.post('/', async (req, res) => {
         testQueued = true;
         queueStartTime = new Date();
         
-        let { testsPassed, testOutput, totalTestTime } = await TestService.runTests(eventParams.commitId, eventParams.branch);
+        let { testsPassed, testOutput, totalTestTime } = await TestService.runTests(eventParams.repoName, eventParams.commitId, eventParams.branch);
         
         let totalQueueAndTestTime = (new Date() - queueStartTime) / 1000;
         await handleTestResult(eventParams.repoName, eventParams.pullRequestNum, eventParams.commitId, testsPassed, testOutput, totalTestTime, totalQueueAndTestTime);
