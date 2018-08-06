@@ -54,14 +54,16 @@ function saveLog(commitId, log) {
     return SystemService.writeFile(logPath, log);
 }
 
-function createResultMessage(testsPassed, totalTestTime, totalQueueAndTestTime, commitId, testOutput, isShortMessage) {
+function createResultMessage(testsPassed, totalTestTime, totalQueueAndTestTime, branch, commitId, testOutput, isShortMessage) {
     let message;
     if (testsPassed) {
-        message = "Tests passed.\n";
+        message = "Tests passed";
     }
     else {
-        message = "Tests failed.\n";
+        message = "Tests failed";
     }
+    message += " in branch '" + branch + "'.\n";
+
     message += getTimingReport(totalTestTime, totalQueueAndTestTime);
     if (isShortMessage) {
         return message;
@@ -88,13 +90,13 @@ function getTimingReport(totalTestTime, totalQueueAndTestTime) {
     return "Testing took " + totalTestTime + "s. Total time: " + totalQueueAndTestTime + "s (including queue).";
 }
 
-async function handleTestResult(repoName, pullRequestNum, commitId, testsPassed, testOutput, totalTestTime, totalQueueAndTestTime) {
+async function handleTestResult(repoName, pullRequestNum, branch, commitId, testsPassed, testOutput, totalTestTime, totalQueueAndTestTime) {
     let isPullRequest = !!pullRequestNum;
     
     LogService.log("Timing of " + commitId + ": " + getTimingReport(totalTestTime, totalQueueAndTestTime));
 
-    let shortMessage = createResultMessage(testsPassed, totalTestTime, totalQueueAndTestTime, commitId, testOutput, true);
-    let fullMessage = createResultMessage(testsPassed, totalTestTime, totalQueueAndTestTime, commitId, testOutput, false);
+    let shortMessage = createResultMessage(testsPassed, totalTestTime, totalQueueAndTestTime, branch, commitId, testOutput, true);
+    let fullMessage = createResultMessage(testsPassed, totalTestTime, totalQueueAndTestTime, branch, commitId, testOutput, false);
 
     await GithubService.setCommitStatus(GITHUB_REPO_OWNER, repoName, commitId, getCommitState(testsPassed), shortMessage);
 
@@ -183,13 +185,13 @@ router.post('/', async (req, res) => {
         let { testsPassed, testOutput, totalTestTime } = await TestService.runTests(eventParams.repoName, eventParams.commitId, eventParams.branch);
         
         let totalQueueAndTestTime = (new Date() - queueStartTime) / 1000;
-        await handleTestResult(eventParams.repoName, eventParams.pullRequestNum, eventParams.commitId, testsPassed, testOutput, totalTestTime, totalQueueAndTestTime);
+        await handleTestResult(eventParams.repoName, eventParams.pullRequestNum, eventParams.branch, eventParams.commitId, testsPassed, testOutput, totalTestTime, totalQueueAndTestTime);
     } catch(err) {
         err = ErrorService.getErrorWithOutput(err);
         LogService.error("Unexpected exception" + (eventParams ? " (commit " + eventParams.commitId + ")" : "") + ": " + err.message);
         if (testQueued) {
             let testTime = (new Date() - queueStartTime) / 1000;
-            handleTestResult(eventParams.repoName, eventParams.pullRequestNum, eventParams.commitId, false, err.message + "\n" + err.output, testTime, testTime);
+            handleTestResult(eventParams.repoName, eventParams.pullRequestNum, eventParams.branch, eventParams.commitId, false, err.message + "\n" + err.output, testTime, testTime);
         }
     }
 });
