@@ -174,7 +174,7 @@ async function BuildAndroidMobileproduct() {
 
 async function testMobileproduct() {
     LogService.log("Building and testing mobileproduct...");
-    let result = await SystemService.exec("./make.py -p -c", MOBILEPRODUCT_FOLDER, BUILD_TIMEOUT, BUGATONE_SPACE_FOLDER + "/lib/linux_x86");
+    let result = await SystemService.exec("./make.py -p -c", MOBILEPRODUCT_FOLDER, BUILD_TIMEOUT, BUGATONE_SPACE_FOLDER + "/lib/linux_x86:/usr/local/lib");
     LogService.log("Building and testing mobileproduct done. Return code: " + result.returnCode);
 
     return {
