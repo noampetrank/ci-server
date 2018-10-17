@@ -102,6 +102,12 @@ async function runTestsCycle(repoName, branch) {
         else {
             await prepareMobileproduct("master");
         }
+
+        let cleanResult = await cleanMobileproduct();
+        if (!cleanResult.testsPassed) {
+            LogService.error("Clean failed");
+            return cleanResult;
+        }
         
         let androidResult = await BuildAndroidMobileproduct();
         if (!androidResult.testsPassed) {
@@ -159,6 +165,17 @@ async function buildBugatoneSpace() {
         LogService.error("Building Bugatone-Space failed: " + err.message);
         throw err;
     }
+}
+
+async function cleanMobileproduct() {
+    LogService.log("Cleaning mobileproduct...");
+    let result = await SystemService.exec("./make.py clean", MOBILEPRODUCT_FOLDER, BUILD_TIMEOUT);
+    LogService.log("Cleaning mobileproduct done. Return code: " + result.returnCode);
+
+    return {
+        testsPassed: result.returnCode == 0,
+        output: result.output
+    };
 }
 
 async function BuildAndroidMobileproduct() {
