@@ -14,6 +14,7 @@ const LOCK_TIMEOUT = 1000 * 60 * 20 // 20 minutes
 const MOBILEPRODUCT_FOLDER = process.env.HOME + "/mobileproduct";
 const BUGATONE_SPACE_FOLDER = process.env.HOME + "/Bugatone-Space";
 const TEST_FILES_FOLDER = process.env.HOME + "/test-files";
+const OPPO_DAEMON_FOLDER = process.env.HOME + "/oppo_daemon";
 const GIT_LFS_TIMEOUT = 1000 * 60 * 20 // 20 minutes
 const BUILD_TIMEOUT = 1000 * 60 * 10 // 10 minutes
 const GTEST_PARALLEL_ERROR_LOG_PATH = MOBILEPRODUCT_FOLDER + "/gtest-parallel-logs/failed"
@@ -96,6 +97,13 @@ async function runTestsCycle(repoName, branch) {
             await prepareTestFiles("master");
         }
 
+        if (repoName == "oppo_daemon") {
+            await prepareOppoDaemon(branch);
+        }
+        else {
+            await prepareOppoDaemon("master");
+        }
+
         if (repoName == "mobileproduct") {
             await prepareMobileproduct(branch);
         }
@@ -130,6 +138,10 @@ async function prepareBugatoneSpace(branch) {
 
 async function prepareTestFiles(branch) {
     return await prepareRepo(TEST_FILES_FOLDER, branch, GIT_LFS_TIMEOUT);
+}
+
+async function prepareOppoDaemon(branch) {
+    return await prepareRepo(OPPO_DAEMON_FOLDER, branch);
 }
 
 async function prepareMobileproduct(branch) {
