@@ -9,14 +9,14 @@ const LogService = require("services/log");
 const ErrorService = require('services/error');
 
 const LOCK_FILE = process.env.HOME + "/github.lock"
-const LOCK_TIMEOUT = 1000 * 60 * 20 // 20 minutes
+const LOCK_TIMEOUT = 1000 * 60 * 30 // 30 minutes
 
 const MOBILEPRODUCT_FOLDER = process.env.HOME + "/mobileproduct";
 const BUGATONE_SPACE_FOLDER = process.env.HOME + "/Bugatone-Space";
 const TEST_FILES_FOLDER = process.env.HOME + "/test-files";
 const OPPO_DAEMON_FOLDER = process.env.HOME + "/oppo_daemon";
 const GIT_LFS_TIMEOUT = 1000 * 60 * 20 // 20 minutes
-const BUILD_TIMEOUT = 1000 * 60 * 10 // 10 minutes
+const BUILD_TIMEOUT = 1000 * 60 * 20 // 20 minutes
 const GTEST_PARALLEL_ERROR_LOG_PATH = MOBILEPRODUCT_FOLDER + "/gtest-parallel-logs/failed"
 
 async function lock(commitId) {
