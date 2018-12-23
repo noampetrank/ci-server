@@ -9,7 +9,7 @@ const LogService = require("services/log");
 const ErrorService = require('services/error');
 
 const LOCK_FILE = process.env.HOME + "/github.lock"
-const LOCK_TIMEOUT = 1000 * 60 * 30 // 30 minutes
+const LOCK_TIMEOUT = 1000 * 60 * 40 // 40 minutes
 
 const MOBILEPRODUCT_FOLDER = process.env.HOME + "/mobileproduct";
 const BUGATONE_SPACE_FOLDER = process.env.HOME + "/Bugatone-Space";
