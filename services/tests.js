@@ -50,7 +50,7 @@ async function runTests(repoName, commitId, branch) {
     try {
         let locked = await lock(commitId);
         if (!locked) {
-            throw "Unable to lock";
+            throw "Timeout waiting in queue";
         }
 
         let testStartTime = new Date();
