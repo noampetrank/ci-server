@@ -17,6 +17,7 @@ const TEST_FILES_FOLDER = process.env.HOME + "/test-files";
 const OPPO_DAEMON_FOLDER = process.env.HOME + "/oppo_daemon";
 const GIT_LFS_TIMEOUT = 1000 * 60 * 20 // 20 minutes
 const BUILD_TIMEOUT = 1000 * 60 * 20 // 20 minutes
+const PIP_INSTALL_TIMEOUT = 1000 * 60 * 2 // 2 minutes
 const GTEST_PARALLEL_ERROR_LOG_PATH = MOBILEPRODUCT_FOLDER + "/gtest-parallel-logs/failed"
 
 async function lock(commitId) {
@@ -88,6 +89,7 @@ async function runTestsCycle(repoName, branch) {
         else {
             await prepareBugatoneSpace("master");
         }
+        await installPythonLibs(BUGATONE_SPACE_FOLDER);
         await buildBugatoneSpace();
 
         if (repoName == "test-files") {
@@ -117,6 +119,7 @@ async function runTestsCycle(repoName, branch) {
             return cleanResult;
         }
         
+        await installPythonLibs(MOBILEPRODUCT_FOLDER);
         let androidResult = await BuildAndroidMobileproduct();
         if (!androidResult.testsPassed) {
             LogService.error("Android build failed");
@@ -158,6 +161,17 @@ async function prepareRepo(folder, branch, pullTimeout) {
         err = ErrorService.getErrorWithOutput(err);
         LogService.error("Preparing " + folder + " failed: " + err.message);
         throw err;
+    }
+}
+
+async function installPythonLibs(folder) {
+    LogService.log("Installing Python libs for folder: " + folder + "...");
+    let installResult = await SystemService.exec("pip install -e . --user", folder, PIP_INSTALL_TIMEOUT);
+    if (installResult.returnCode != 0) {
+        throw new ErrorService.ErrorWithOutput(
+            "Error installing Python libs in " + folder + ": return value is " + installResult.returnCode,
+            installResult.output
+        );
     }
 }
 
