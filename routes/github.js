@@ -66,7 +66,7 @@ function createResultMessage(testsPassed, totalTestTime, totalQueueAndTestTime, 
 
     message += getTimingReport(totalTestTime, totalQueueAndTestTime);
     if (isShortMessage) {
-        return message;
+        return message.slice(-MAX_GITHUB_COMMIT_STATUS_LENGTH);
     }
 
     message += "\nSee full log at: " + getLogAddress(commitId);
