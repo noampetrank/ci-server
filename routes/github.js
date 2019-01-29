@@ -191,7 +191,11 @@ router.post('/', async (req, res) => {
         LogService.error("Unexpected exception" + (eventParams ? " (commit " + eventParams.commitId + ")" : "") + ": " + err.message);
         if (testQueued) {
             let testTime = (new Date() - queueStartTime) / 1000;
-            handleTestResult(eventParams.repoName, eventParams.pullRequestNum, eventParams.branch, eventParams.commitId, false, err.message + "\n" + err.output, testTime, testTime);
+            try {
+                await handleTestResult(eventParams.repoName, eventParams.pullRequestNum, eventParams.branch, eventParams.commitId, false, err.message + "\n" + err.output, testTime, testTime);
+            } catch(err) {
+                LogService.error("Unexpected exception in handleTestResult:" + (eventParams ? " (commit " + eventParams.commitId + ")" : "") + ": " + err);
+            }
         }
     }
 });
