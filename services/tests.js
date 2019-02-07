@@ -15,6 +15,8 @@ const MOBILEPRODUCT_FOLDER = process.env.HOME + "/mobileproduct";
 const BUGATONE_SPACE_FOLDER = process.env.HOME + "/Bugatone-Space";
 const TEST_FILES_FOLDER = process.env.HOME + "/test-files";
 const OPPO_DAEMON_FOLDER = process.env.HOME + "/oppo_daemon";
+const DEVICE_COMMUNICATION_FOLDER = process.env.HOME + "/device_communication";
+
 const GIT_LFS_TIMEOUT = 1000 * 60 * 20 // 20 minutes
 const BUILD_TIMEOUT = 1000 * 60 * 20 // 20 minutes
 const PIP_INSTALL_TIMEOUT = 1000 * 60 * 2 // 2 minutes
@@ -113,6 +115,8 @@ async function runTestsCycle(repoName, branch) {
             await prepareMobileproduct("master");
         }
 
+        await prepareDeviceCommunication("master")
+
         let cleanResult = await cleanMobileproduct();
         if (!cleanResult.testsPassed) {
             LogService.error("Clean failed");
@@ -120,6 +124,7 @@ async function runTestsCycle(repoName, branch) {
         }
         
         await installPythonLibs(MOBILEPRODUCT_FOLDER);
+        await installPythonLibs(DEVICE_COMMUNICATION_FOLDER);
         let androidResult = await BuildAndroidMobileproduct();
         if (!androidResult.testsPassed) {
             LogService.error("Android build failed");
@@ -149,6 +154,10 @@ async function prepareOppoDaemon(branch) {
 
 async function prepareMobileproduct(branch) {
     return await prepareRepo(MOBILEPRODUCT_FOLDER, branch);
+}
+
+async function prepareDeviceCommunication(branch) {
+    return await prepareRepo(DEVICE_COMMUNICATION_FOLDER, branch);
 }
 
 async function prepareRepo(folder, branch, pullTimeout) {
