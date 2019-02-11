@@ -15,6 +15,9 @@ const MOBILEPRODUCT_FOLDER = process.env.HOME + "/mobileproduct";
 const BUGATONE_SPACE_FOLDER = process.env.HOME + "/Bugatone-Space";
 const TEST_FILES_FOLDER = process.env.HOME + "/test-files";
 const OPPO_DAEMON_FOLDER = process.env.HOME + "/oppo_daemon";
+const DEVICE_COMMUNICATION_FOLDER = process.env.HOME + "/device_communication";
+const BUGA_RECORDINGS_FOLDER = process.env.HOME + "/buga-recordings";
+const PYBUGARECSPACE_FOLDER = process.env.HOME + "/buga-recordings/bugatone_space";
 const GIT_LFS_TIMEOUT = 1000 * 60 * 20 // 20 minutes
 const BUILD_TIMEOUT = 1000 * 60 * 20 // 20 minutes
 const PIP_INSTALL_TIMEOUT = 1000 * 60 * 2 // 2 minutes
@@ -113,6 +116,23 @@ async function runTestsCycle(repoName, branch) {
             await prepareMobileproduct("master");
         }
 
+        if (repoName == "device_communication") {
+            await prepareDeviceCommunication(branch);
+        }
+        else {
+            await prepareDeviceCommunication("master");
+        }
+        await installPythonLibs(DEVICE_COMMUNICATION_FOLDER);
+
+        if (repoName == "buga-recordings") {
+            await prepareBugaRecordings(branch);
+        }
+        else {
+            await prepareBugaRecordings("master");
+        }
+        await installPythonLibs(BUGA_RECORDINGS_FOLDER);
+        await installPythonLibs(PYBUGARECSPACE_FOLDER);
+
         let cleanResult = await cleanMobileproduct();
         if (!cleanResult.testsPassed) {
             LogService.error("Clean failed");
@@ -145,6 +165,14 @@ async function prepareTestFiles(branch) {
 
 async function prepareOppoDaemon(branch) {
     return await prepareRepo(OPPO_DAEMON_FOLDER, branch);
+}
+
+async function prepareDeviceCommunication(branch) {
+    return await prepareRepo(DEVICE_COMMUNICATION_FOLDER, branch);
+}
+
+async function prepareBugaRecordings(branch) {
+    return await prepareRepo(BUGA_RECORDINGS_FOLDER, branch);
 }
 
 async function prepareMobileproduct(branch) {
